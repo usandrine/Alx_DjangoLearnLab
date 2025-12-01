@@ -57,7 +57,7 @@ TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'DIRS': [],
-        'APP_DIRS': True,
+        'APP_DIRS': True,  # This should be True to find app templates
         'OPTIONS': {
             'context_processors': [
                 'django.template.context_processors.debug',
@@ -68,7 +68,6 @@ TEMPLATES = [
         },
     },
 ]
-
 WSGI_APPLICATION = 'LibraryProject.wsgi.application'
 
 

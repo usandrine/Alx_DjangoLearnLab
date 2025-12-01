@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1>Secure Search</h1>
+<form method="post">
+    {% csrf_token %}  <!-- CSRF Protection -->
+    <input type="text" name="search" placeholder="Search books...">
+    <button type="submit">Search</button>
+</form>
+
+<!-- Example of safe JavaScript -->
+<script>
+    // Safe JavaScript - avoid innerHTML with user data
+    const userInput = "{{ user_input|escapejs }}";  // Use escapejs filter
+    document.getElementById('result').textContent = userInput;  // Safe
+    // DON'T DO: document.getElementById('result').innerHTML = userInput;
+</script>
+{% endblock %}

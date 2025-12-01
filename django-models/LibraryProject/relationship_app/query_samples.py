@@ -1,52 +1,35 @@
-"""
-Sample queries demonstrating model relationships
-"""
+from relationship_app.models import Author, Book, Library, Librarian
 
-def get_books_by_author(author_name):
-    """Query all books by a specific author"""
-    from .models import Author, Book
-    try:
-        author = Author.objects.get(name=author_name)
-        books = Book.objects.filter(author=author)
-        return books
-    except Author.DoesNotExist:
-        return Book.objects.none()
+# 1. Query all books by a specific author
+def books_by_author(author_name):
+    author = Author.objects.get(name=author_name)
+    books = Book.objects.filter(author=author)
+    print(f"Books by {author_name}:")
+    for book in books:
+        print(f"- {book.title}")
 
-def get_books_in_library(library_name):
-    """List all books in a library"""
-    from .models import Library
-    try:
-        library = Library.objects.get(name=library_name)
-        books = library.books.all()
-        return books
-    except Library.DoesNotExist:
-        return []
+# 2. List all books in a library
+def books_in_library(library_name):
+    library = Library.objects.get(name=library_name)
+    books = library.books.all()
+    print(f"Books in the library {library_name}:")
+    for book in books:
+        print(f"- {book.title}")
 
-def get_librarian_for_library(library_name):
-    """Retrieve the librarian for a library"""
-    from .models import Library
-    try:
-        library = Library.objects.get(name=library_name)
-        # This is the key line - accessing the librarian through OneToOne relationship
-        librarian = library.librarian
-        return librarian
-    except Library.DoesNotExist:
-        return None
+# 3. Retrieve the librarian for a library
+def librarian_for_library(library_name):
+    library = Library.objects.get(name=library_name)
+    librarian = Librarian.objects.get(library=library)
+    print(f"The librarian for {library_name} is {librarian.name}")
 
-# ADD THESE QUERY EXAMPLES AT THE BOTTOM OF THE FILE:
-# These demonstrate the actual queries as the checker might expect
-
+# Test the queries
 if __name__ == "__main__":
-    # Example 1: Query all books by a specific author
-    author_name = "J.K. Rowling"
-    books_by_author = get_books_by_author(author_name)
-    print(f"Books by {author_name}: {list(books_by_author)}")
+    # Query 1: Books by a specific author (change 'Author Name' to an existing author)
+    books_by_author('Author Name')
+
+    # Query 2: Books in a specific library (change 'Library Name' to an existing library)
+    books_in_library('Library Name')
+
+    # Query 3: Librarian for a specific library (change 'Library Name' to an existing library)
+    librarian_for_library('Library Name')
     
-    # Example 2: List all books in a library
-    library_name = "Central Library"
-    books_in_library = get_books_in_library(library_name)
-    print(f"Books in {library_name}: {list(books_in_library)}")
-    
-    # Example 3: Retrieve the librarian for a library
-    librarian = get_librarian_for_library(library_name)
-    print(f"Librarian for {library_name}: {librarian}")

@@ -8,18 +8,17 @@ from .models import Author, Book
 from .serializers import AuthorSerializer, BookSerializer
 from .filters import BookFilter
 
-# ============ TASK 1: REQUIRED GENERIC VIEWS ============
+# ============ BOOK VIEWS WITH PROPER PERMISSION CLASSES ============
 
 class BookListView(generics.ListAPIView):
     """
-    ListView for retrieving all books.
-    GET: Returns list of all books
+    ListView: Retrieve all books
+    Permission: AllowAny (unauthenticated users can view)
     """
     queryset = Book.objects.all()
     serializer_class = BookSerializer
-    permission_classes = [permissions.AllowAny]  # Anyone can view
+    permission_classes = [permissions.AllowAny]  # Explicitly allow anyone
     
-    # Filtering, searching, ordering
     filter_backends = [
         django_filters.DjangoFilterBackend,
         filters.SearchFilter,
@@ -32,34 +31,34 @@ class BookListView(generics.ListAPIView):
 
 class BookDetailView(generics.RetrieveAPIView):
     """
-    DetailView for retrieving a single book by ID.
-    GET: Returns details of a single book
+    DetailView: Retrieve single book by ID
+    Permission: AllowAny (unauthenticated users can view)
     """
     queryset = Book.objects.all()
     serializer_class = BookSerializer
-    permission_classes = [permissions.AllowAny]  # Anyone can view
+    permission_classes = [permissions.AllowAny]  # Explicitly allow anyone
     lookup_field = 'pk'
 
 class BookCreateView(generics.CreateAPIView):
     """
-    CreateView for adding a new book.
-    POST: Creates a new book
+    CreateView: Add new book
+    Permission: IsAuthenticated (only logged-in users can create)
     """
     queryset = Book.objects.all()
     serializer_class = BookSerializer
-    permission_classes = [permissions.IsAuthenticated]  # Only authenticated users can create
+    permission_classes = [permissions.IsAuthenticated]  # Must be authenticated
     
     def perform_create(self, serializer):
         serializer.save()
 
 class BookUpdateView(generics.UpdateAPIView):
     """
-    UpdateView for modifying an existing book.
-    PUT/PATCH: Updates an existing book
+    UpdateView: Modify existing book
+    Permission: IsAuthenticated (only logged-in users can update)
     """
     queryset = Book.objects.all()
     serializer_class = BookSerializer
-    permission_classes = [permissions.IsAuthenticated]  # Only authenticated users can update
+    permission_classes = [permissions.IsAuthenticated]  # Must be authenticated
     lookup_field = 'pk'
     
     def perform_update(self, serializer):
@@ -67,21 +66,24 @@ class BookUpdateView(generics.UpdateAPIView):
 
 class BookDeleteView(generics.DestroyAPIView):
     """
-    DeleteView for removing a book.
-    DELETE: Deletes a book
+    DeleteView: Remove book
+    Permission: IsAuthenticated (only logged-in users can delete)
     """
     queryset = Book.objects.all()
     serializer_class = BookSerializer
-    permission_classes = [permissions.IsAuthenticated]  # Only authenticated users can delete
+    permission_classes = [permissions.IsAuthenticated]  # Must be authenticated
     lookup_field = 'pk'
     
     def perform_destroy(self, instance):
         instance.delete()
 
-# ============ AUTHOR VIEWS ============
+# ============ AUTHOR VIEWS WITH PROPER PERMISSION CLASSES ============
 
 class AuthorListView(generics.ListAPIView):
-    """ListView for authors"""
+    """
+    ListView: Retrieve all authors
+    Permission: AllowAny
+    """
     queryset = Author.objects.all()
     serializer_class = AuthorSerializer
     permission_classes = [permissions.AllowAny]
@@ -92,36 +94,48 @@ class AuthorListView(generics.ListAPIView):
     ordering = ['name']
 
 class AuthorDetailView(generics.RetrieveAPIView):
-    """DetailView for single author"""
+    """
+    DetailView: Retrieve single author by ID
+    Permission: AllowAny
+    """
     queryset = Author.objects.all()
     serializer_class = AuthorSerializer
     permission_classes = [permissions.AllowAny]
     lookup_field = 'pk'
 
 class AuthorCreateView(generics.CreateAPIView):
-    """CreateView for new author"""
+    """
+    CreateView: Add new author
+    Permission: IsAuthenticated
+    """
     queryset = Author.objects.all()
     serializer_class = AuthorSerializer
     permission_classes = [permissions.IsAuthenticated]
 
 class AuthorUpdateView(generics.UpdateAPIView):
-    """UpdateView for existing author"""
+    """
+    UpdateView: Modify existing author
+    Permission: IsAuthenticated
+    """
     queryset = Author.objects.all()
     serializer_class = AuthorSerializer
     permission_classes = [permissions.IsAuthenticated]
     lookup_field = 'pk'
 
 class AuthorDeleteView(generics.DestroyAPIView):
-    """DeleteView for author"""
+    """
+    DeleteView: Remove author
+    Permission: IsAuthenticated
+    """
     queryset = Author.objects.all()
     serializer_class = AuthorSerializer
     permission_classes = [permissions.IsAuthenticated]
     lookup_field = 'pk'
 
-# ============ COMBINED VIEWS (Alternative) ============
+# ============ COMBINED VIEWS ============
 
 class BookListCreateView(generics.ListCreateAPIView):
-    """Combined List and Create view for books"""
+    """Combined view with IsAuthenticatedOrReadOnly permission"""
     queryset = Book.objects.all()
     serializer_class = BookSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
@@ -137,16 +151,46 @@ class BookListCreateView(generics.ListCreateAPIView):
     ordering = ['title']
 
 class BookRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
-    """Combined Retrieve, Update, Delete view for books"""
+    """Combined view with IsAuthenticatedOrReadOnly permission"""
     queryset = Book.objects.all()
     serializer_class = BookSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
     lookup_field = 'pk'
 
+# ============ ROLE-BASED PERMISSION EXAMPLE ============
+
+class AdminOnlyView(APIView):
+    """
+    Example of role-based permission
+    Only users with is_staff=True can access
+    """
+    permission_classes = [permissions.IsAdminUser]
+    
+    def get(self, request):
+        return Response({
+            'message': 'This view is only accessible to admin users',
+            'user': request.user.username
+        })
+
+class LibrarianOnlyView(APIView):
+    """
+    Example of custom permission based on user role
+    (You would need to implement custom permission class)
+    """
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def get(self, request):
+        # Check if user has librarian role (pseudo-code)
+        # if request.user.profile.role == 'librarian':
+        return Response({
+            'message': 'Librarian dashboard',
+            'user': request.user.username
+        })
+
 # ============ CUSTOM VIEWS ============
 
 class BookStatisticsView(APIView):
-    """Custom statistics view"""
+    """Public statistics view"""
     permission_classes = [permissions.AllowAny]
     
     def get(self, request):

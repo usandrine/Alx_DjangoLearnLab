@@ -1,14 +1,6 @@
-# ============ EXPLICIT IMPORTS AS CHECKER WANTS ============
-from rest_framework import generics, status, filters
+from rest_framework import generics, permissions, status, filters
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework.permissions import (
-    IsAuthenticated, 
-    IsAuthenticatedOrReadOnly, 
-    AllowAny,
-    IsAdminUser,
-    BasePermission
-)
 from django.shortcuts import get_object_or_404
 from django_filters import rest_framework as django_filters
 from django.db import models
@@ -16,7 +8,7 @@ from .models import Author, Book
 from .serializers import AuthorSerializer, BookSerializer
 from .filters import BookFilter
 
-# ============ BOOK VIEWS WITH EXPLICIT PERMISSION CLASSES ============
+# ============ BOOK VIEWS WITH PROPER PERMISSION CLASSES ============
 
 class BookListView(generics.ListAPIView):
     """
@@ -25,7 +17,7 @@ class BookListView(generics.ListAPIView):
     """
     queryset = Book.objects.all()
     serializer_class = BookSerializer
-    permission_classes = [AllowAny]  # Use imported AllowAny
+    permission_classes = [permissions.AllowAny]  # Explicitly allow anyone
     
     filter_backends = [
         django_filters.DjangoFilterBackend,
@@ -44,7 +36,7 @@ class BookDetailView(generics.RetrieveAPIView):
     """
     queryset = Book.objects.all()
     serializer_class = BookSerializer
-    permission_classes = [AllowAny]  # Use imported AllowAny
+    permission_classes = [permissions.AllowAny]  # Explicitly allow anyone
     lookup_field = 'pk'
 
 class BookCreateView(generics.CreateAPIView):
@@ -54,7 +46,7 @@ class BookCreateView(generics.CreateAPIView):
     """
     queryset = Book.objects.all()
     serializer_class = BookSerializer
-    permission_classes = [IsAuthenticated]  # Use imported IsAuthenticated
+    permission_classes = [permissions.IsAuthenticated]  # Must be authenticated
     
     def perform_create(self, serializer):
         serializer.save()
@@ -66,7 +58,7 @@ class BookUpdateView(generics.UpdateAPIView):
     """
     queryset = Book.objects.all()
     serializer_class = BookSerializer
-    permission_classes = [IsAuthenticated]  # Use imported IsAuthenticated
+    permission_classes = [permissions.IsAuthenticated]  # Must be authenticated
     lookup_field = 'pk'
     
     def perform_update(self, serializer):
@@ -79,13 +71,13 @@ class BookDeleteView(generics.DestroyAPIView):
     """
     queryset = Book.objects.all()
     serializer_class = BookSerializer
-    permission_classes = [IsAuthenticated]  # Use imported IsAuthenticated
+    permission_classes = [permissions.IsAuthenticated]  # Must be authenticated
     lookup_field = 'pk'
     
     def perform_destroy(self, instance):
         instance.delete()
 
-# ============ AUTHOR VIEWS ============
+# ============ AUTHOR VIEWS WITH PROPER PERMISSION CLASSES ============
 
 class AuthorListView(generics.ListAPIView):
     """
@@ -94,7 +86,7 @@ class AuthorListView(generics.ListAPIView):
     """
     queryset = Author.objects.all()
     serializer_class = AuthorSerializer
-    permission_classes = [AllowAny]
+    permission_classes = [permissions.AllowAny]
     
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
     search_fields = ['name', 'bio']
@@ -108,7 +100,7 @@ class AuthorDetailView(generics.RetrieveAPIView):
     """
     queryset = Author.objects.all()
     serializer_class = AuthorSerializer
-    permission_classes = [AllowAny]
+    permission_classes = [permissions.AllowAny]
     lookup_field = 'pk'
 
 class AuthorCreateView(generics.CreateAPIView):
@@ -118,7 +110,7 @@ class AuthorCreateView(generics.CreateAPIView):
     """
     queryset = Author.objects.all()
     serializer_class = AuthorSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated]
 
 class AuthorUpdateView(generics.UpdateAPIView):
     """
@@ -127,7 +119,7 @@ class AuthorUpdateView(generics.UpdateAPIView):
     """
     queryset = Author.objects.all()
     serializer_class = AuthorSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated]
     lookup_field = 'pk'
 
 class AuthorDeleteView(generics.DestroyAPIView):
@@ -137,19 +129,16 @@ class AuthorDeleteView(generics.DestroyAPIView):
     """
     queryset = Author.objects.all()
     serializer_class = AuthorSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated]
     lookup_field = 'pk'
 
-# ============ COMBINED VIEWS USING IsAuthenticatedOrReadOnly ============
+# ============ COMBINED VIEWS ============
 
 class BookListCreateView(generics.ListCreateAPIView):
-    """
-    Combined List and Create view
-    Permission: IsAuthenticatedOrReadOnly
-    """
+    """Combined view with IsAuthenticatedOrReadOnly permission"""
     queryset = Book.objects.all()
     serializer_class = BookSerializer
-    permission_classes = [IsAuthenticatedOrReadOnly]  # Use imported IsAuthenticatedOrReadOnly
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
     
     filter_backends = [
         django_filters.DjangoFilterBackend,
@@ -162,36 +151,39 @@ class BookListCreateView(generics.ListCreateAPIView):
     ordering = ['title']
 
 class BookRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
-    """
-    Combined Retrieve, Update, Delete view
-    Permission: IsAuthenticatedOrReadOnly
-    """
+    """Combined view with IsAuthenticatedOrReadOnly permission"""
     queryset = Book.objects.all()
     serializer_class = BookSerializer
-    permission_classes = [IsAuthenticatedOrReadOnly]  # Use imported IsAuthenticatedOrReadOnly
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
     lookup_field = 'pk'
 
-# ============ CUSTOM PERMISSION CLASSES EXAMPLE ============
+# ============ ROLE-BASED PERMISSION EXAMPLE ============
 
-class IsLibrarian(BasePermission):
+class AdminOnlyView(APIView):
     """
-    Custom permission class for librarian role
-    (Example of role-based permission)
+    Example of role-based permission
+    Only users with is_staff=True can access
     """
-    def has_permission(self, request, view):
-        # Check if user has librarian role
-        # This is a simplified example
-        return request.user.is_authenticated and request.user.is_staff
-
-class LibrarianOnlyView(APIView):
-    """
-    View only accessible to librarians
-    """
-    permission_classes = [IsLibrarian]
+    permission_classes = [permissions.IsAdminUser]
     
     def get(self, request):
         return Response({
-            'message': 'Welcome Librarian!',
+            'message': 'This view is only accessible to admin users',
+            'user': request.user.username
+        })
+
+class LibrarianOnlyView(APIView):
+    """
+    Example of custom permission based on user role
+    (You would need to implement custom permission class)
+    """
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def get(self, request):
+        # Check if user has librarian role (pseudo-code)
+        # if request.user.profile.role == 'librarian':
+        return Response({
+            'message': 'Librarian dashboard',
             'user': request.user.username
         })
 
@@ -199,7 +191,7 @@ class LibrarianOnlyView(APIView):
 
 class BookStatisticsView(APIView):
     """Public statistics view"""
-    permission_classes = [AllowAny]  # Use imported AllowAny
+    permission_classes = [permissions.AllowAny]
     
     def get(self, request):
         total_books = Book.objects.count()

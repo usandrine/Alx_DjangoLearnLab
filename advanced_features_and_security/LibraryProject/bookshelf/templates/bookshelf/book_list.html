@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Book List - Secure View</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 1000px; margin: 0 auto; padding: 20px; }
+        .book-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
+        .book-card { border: 1px solid #ddd; padding: 20px; border-radius: 8px; }
+        .book-title { font-size: 18px; font-weight: bold; margin-bottom: 10px; }
+        .book-author { color: #666; margin-bottom: 10px; }
+        .book-year { color: #888; font-size: 14px; }
+        .security-note { background: #e3f2fd; padding: 15px; border-radius: 8px; margin: 20px 0; }
+    </style>
+</head>
+<body>
+    <h1>Secure Book List</h1>
+    
+    <div class="security-note">
+        <strong>Security Features Active:</strong>
+        <ul>
+            <li>CSRF Protection Enabled</li>
+            <li>XSS Prevention (Auto-escaping in templates)</li>
+            <li>SQL Injection Prevention (Using Django ORM)</li>
+            <li>Input Validation</li>
+            <li>Secure Headers Configured</li>
+        </ul>
+    </div>
+    
+    <h2>Books ({{ books|length }})</h2>
+    
+    {% if books %}
+    <div class="book-list">
+        {% for book in books %}
+        <div class="book-card">
+            <div class="book-title">{{ book.title|escape }}</div>
+            <div class="book-author">By: {{ book.author.name|escape }}</div>
+            <div class="book-year">Published: {{ book.publication_year }}</div>
+            <div class="book-isbn">ISBN: {{ book.isbn|default:"Not available"|escape }}</div>
+            
+            {% if book.description %}
+            <div style="margin-top: 10px; font-size: 14px; color: #555;">
+                {{ book.description|truncatewords:20|escape }}
+            </div>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p>No books available.</p>
+    {% endif %}
+    
+    <div style="margin-top: 40px; padding: 20px; background: #f5f5f5; border-radius: 8px;">
+        <h3>Security Implementation Notes:</h3>
+        <p>This view demonstrates secure coding practices:</p>
+        <ol>
+            <li>All variables are escaped using the |escape filter</li>
+            <li>Database queries use Django ORM (prevents SQL injection)</li>
+            <li>User input is validated before processing</li>
+            <li>CSRF tokens protect all forms</li>
+            <li>Content Security Policy headers are configured</li>
+        </ol>
+    </div>
+</body>
+</html>

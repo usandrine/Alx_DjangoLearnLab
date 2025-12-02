@@ -16,4 +16,5 @@ urlpatterns = [
     # Task 3: Authentication endpoints
     path('api-token-auth/', views.CustomObtainAuthToken.as_view(), name='api_token_auth'),
     path('api-auth/', include('rest_framework.urls', namespace='rest_framework')),
+     path('books/', views.BookList.as_view(), name='book-list'),
 ]

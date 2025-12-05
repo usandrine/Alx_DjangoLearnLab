@@ -37,6 +37,13 @@
         {% block content %}
         {% endblock %}
     </div>
+
+    <div class="search-form">
+    <form method="GET" action="{% url 'search' %}">
+        <input type="text" name="q" placeholder="Search posts..." value="{{ search_query }}">
+        <button type="submit" class="btn">Search</button>
+    </form>
+</div>
     
     <script src="{% static 'blog/js/script.js' %}"></script>
 </body>

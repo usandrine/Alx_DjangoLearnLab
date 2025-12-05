@@ -8,6 +8,8 @@ from .forms import CommentForm
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.urls import reverse_lazy
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 
 
 # Post Views
@@ -33,22 +35,22 @@ class PostCreateView(LoginRequiredMixin, CreateView):  # LoginRequiredMixin ensu
         form.instance.author = self.request.user
         return super().form_valid(form)
 
-class PostUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):  # Both mixins
+class PostUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     model = Post
     template_name = 'blog/post_form.html'
     fields = ['title', 'content']
     success_url = reverse_lazy('post_list')
     
-    def test_func(self):  # UserPassesTestMixin requires this method
+    def test_func(self):
         post = self.get_object()
         return self.request.user == post.author  # Only author can edit
 
-class PostDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):  # Both mixins
+class PostDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
     model = Post
     template_name = 'blog/post_confirm_delete.html'
     success_url = reverse_lazy('post_list')
     
-    def test_func(self):  # UserPassesTestMixin requires this method
+    def test_func(self):
         post = self.get_object()
         return self.request.user == post.author  # Only author can delete
 

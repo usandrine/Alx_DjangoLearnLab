@@ -21,3 +21,14 @@
     <p>You haven't created any posts yet.</p>
 {% endfor %}
 {% endblock %}
+
+{% extends 'blog/base.html' %}
+
+{% block content %}
+<h2>Profile</h2>
+<form method="POST">
+    {% csrf_token %}  <!-- CSRF token here -->
+    {{ form.as_p }}
+    <button type="submit" class="btn">Update Profile</button>
+</form>
+{% endblock %}

@@ -1,11 +1,19 @@
 {% extends 'blog/base.html' %}
 
+{% block title %}{{ title }}{% endblock %}
+
 {% block content %}
-<h2>Posts tagged with "{{ tag.name }}"</h2>
+<h1>{{ title }}</h1>
+
 {% if posts %}
-    {% for post in posts %}
-        <!-- Post display code -->
-    {% endfor %}
+    <div class="post-list">
+        {% for post in posts %}
+        <div class="post-card">
+            <h2><a href="{% url 'post_detail' post.pk %}">{{ post.title }}</a></h2>
+            <!-- Same content as search_results.html -->
+        </div>
+        {% endfor %}
+    </div>
 {% else %}
     <p>No posts found with this tag.</p>
 {% endif %}

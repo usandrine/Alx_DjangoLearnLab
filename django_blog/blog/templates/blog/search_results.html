@@ -9,4 +9,39 @@
 {% else %}
     <p>No posts found matching your search.</p>
 {% endif %}
+{% endblock %}{% extends 'blog/base.html' %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<h1>{{ title }}</h1>
+
+{% if query %}
+    <p>Found {{ posts.count }} result(s) for "{{ query }}"</p>
+{% endif %}
+
+{% if posts %}
+    <div class="post-list">
+        {% for post in posts %}
+        <div class="post-card">
+            <h2><a href="{% url 'post_detail' post.pk %}">{{ post.title }}</a></h2>
+            <div class="post-meta">
+                By {{ post.author.username }} | {{ post.published_date|date:"F d, Y" }}
+            </div>
+            <div class="post-excerpt">
+                {{ post.content|truncatewords:50 }}
+            </div>
+            {% if post.tags.all %}
+            <div class="tags">
+                {% for tag in post.tags.all %}
+                <a href="{% url 'tag_posts' tag.slug %}" class="tag">{{ tag.name }}</a>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <p>No posts found. Try a different search term.</p>
+{% endif %}
 {% endblock %}

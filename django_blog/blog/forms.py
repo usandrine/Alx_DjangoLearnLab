@@ -1,55 +1,37 @@
-from django import forms
-from django.contrib.auth.models import User
-from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
+from taggit.forms import TagWidget
+from taggit.models import Tag
 
-from django_blog.blog.models import Post
-
-class UserRegisterForm(UserCreationForm):
-    email = forms.EmailField(required=True)
+class PostForm(forms.ModelForm):
+    tags = forms.CharField(
+        required=False,
+        widget=TagWidget(),  # Add TagWidget here
+        help_text="Enter comma-separated tags"
+    )
     
     class Meta:
-        model = User
-        fields = ['username', 'email', 'password1', 'password2']
-
-class UserUpdateForm(forms.ModelForm):
-    email = forms.EmailField()
-    
-    class Meta:
-        model = User
-        fields = ['username', 'email']
-
-class UserLoginForm(AuthenticationForm):
-    username = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control'}))
-    password = forms.CharField(widget=forms.PasswordInput(attrs={'class': 'form-control'}))
-
-class CommentForm(forms.ModelForm):
-    class Meta:
-        model = Comment
-        fields = ['content']
+        model = Post
+        fields = ['title', 'content', 'tags']
         widgets = {
-            'content': forms.Textarea(attrs={
-                'class': 'form-control',
-                'rows': 3,
-                'placeholder': 'Add a comment...'
-            }),
+            'title': forms.TextInput(attrs={'class': 'form-control'}),
+            'content': forms.Textarea(attrs={'class': 'form-control', 'rows': 10}),
         }
     
-        def clean_content(self):
-            content = self.cleaned_data.get('content')
-            if len(content.strip()) < 1:
-                raise forms.ValidationError("Comment cannot be empty.")
-            return content
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.instance.pk:
+            # Initialize tags for existing posts
+            self.initial['tags'] = ", ".join(self.instance.tags.names())
     
-    class PostForm(forms.ModelForm):
-        tags = forms.CharField(required=False, help_text="Comma-separated tags")
-    
-        class Meta:
-            model = Post
-            fields = ['title', 'content', 'tags']
-    
-        def save(self, commit=True):
-            post = super().save(commit=False)
-            if commit:
-                post.save()
-                self.save_m2m()  # Save tags
-            return post
+    def save(self, commit=True):
+        post = super().save(commit=False)
+        if commit:
+            post.save()
+            # Clear existing tags and add new ones
+            post.tags.clear()
+            tag_names = self.cleaned_data['tags']
+            if tag_names:
+                for tag_name in tag_names.split(','):
+                    tag_name = tag_name.strip()
+                    if tag_name:
+                        post.tags.add(tag_name)
+        return post

@@ -46,5 +46,12 @@
 </div>
     
     <script src="{% static 'blog/js/script.js' %}"></script>
+
+    <!-- Add this to your navigation -->
+<form class="search-form" method="GET" action="{% url 'search' %}">
+    <input type="text" name="q" placeholder="Search posts..." 
+           value="{{ request.GET.q|default:'' }}">
+    <button type="submit" class="btn">Search</button>
+</form>
 </body>
 </html>

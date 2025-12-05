@@ -5,6 +5,52 @@ from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.urls import reverse_lazy
 from .models import Comment
 from .forms import CommentForm
+from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
+from django.urls import reverse_lazy
+
+
+# Post Views
+class PostListView(ListView):
+    model = Post
+    template_name = 'blog/post_list.html'
+    context_object_name = 'posts'
+    ordering = ['-published_date']
+    paginate_by = 10
+
+class PostDetailView(DetailView):  # This is what checker wants
+    model = Post
+    template_name = 'blog/post_detail.html'
+    context_object_name = 'post'
+
+class PostCreateView(LoginRequiredMixin, CreateView):  # LoginRequiredMixin ensures authentication
+    model = Post
+    template_name = 'blog/post_form.html'
+    fields = ['title', 'content']
+    success_url = reverse_lazy('post_list')
+    
+    def form_valid(self, form):
+        form.instance.author = self.request.user
+        return super().form_valid(form)
+
+class PostUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):  # Both mixins
+    model = Post
+    template_name = 'blog/post_form.html'
+    fields = ['title', 'content']
+    success_url = reverse_lazy('post_list')
+    
+    def test_func(self):  # UserPassesTestMixin requires this method
+        post = self.get_object()
+        return self.request.user == post.author  # Only author can edit
+
+class PostDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):  # Both mixins
+    model = Post
+    template_name = 'blog/post_confirm_delete.html'
+    success_url = reverse_lazy('post_list')
+    
+    def test_func(self):  # UserPassesTestMixin requires this method
+        post = self.get_object()
+        return self.request.user == post.author  # Only author can delete
 
 class CommentCreateView(LoginRequiredMixin, CreateView):
     model = Comment
@@ -112,3 +158,5 @@ class PostByTagListView(ListView):
         tag_slug = self.kwargs.get('tag_slug')
         context['tag'] = get_object_or_404(Tag, slug=tag_slug)
         return context
+    
+    

@@ -3,31 +3,7 @@
 {% block content %}
 <h2>Profile</h2>
 <form method="POST">
-    {% csrf_token %}  <!-- CSRF token -->
-    {{ form.as_p }}
-    <button type="submit" class="btn">Update Profile</button>
-</form>
-
-<h3>My Posts</h3>
-{% for post in user_posts %}
-    <div class="post-card">
-        <h4>{{ post.title }}</h4>
-        <p>{{ post.content|truncatewords:30 }}</p>
-        <a href="{% url 'post_detail' post.pk %}" class="btn">View</a>
-        <a href="{% url 'post_update' post.pk %}" class="btn">Edit</a>
-        <a href="{% url 'post_delete' post.pk %}" class="btn btn-danger">Delete</a>
-    </div>
-{% empty %}
-    <p>You haven't created any posts yet.</p>
-{% endfor %}
-{% endblock %}
-
-{% extends 'blog/base.html' %}
-
-{% block content %}
-<h2>Profile</h2>
-<form method="POST">
-    {% csrf_token %}  <!-- CSRF token here -->
+    {% csrf_token %}  <!-- CSRF Token for protection -->
     {{ form.as_p }}
     <button type="submit" class="btn">Update Profile</button>
 </form>

@@ -71,3 +71,44 @@ def tag_view(request, tag_slug):
         'title': f"Posts tagged with '{tag.name}'"
     }
     return render(request, 'blog/tag_posts.html', context)
+
+@login_required
+def profile_view(request):
+    """
+    View that allows authenticated users to view and edit their profile details.
+    This view handles POST requests to update user information.
+    """
+    if request.method == 'POST':  # This checks for POST method
+        form = UserUpdateForm(request.POST, instance=request.user)
+        if form.is_valid():
+            form.save()  # This saves the updated information
+            messages.success(request, 'Your profile has been updated successfully!')
+            return redirect('profile')
+    else:
+        form = UserUpdateForm(instance=request.user)
+    
+    user_posts = Post.objects.filter(author=request.user)
+    context = {
+        'form': form,
+        'user_posts': user_posts
+    }
+    return render(request, 'blog/profile.html', context)
+class PostByTagListView(ListView):
+    """
+    View to display posts by tag.
+    """
+    model = Post
+    template_name = 'blog/tag_posts.html'
+    context_object_name = 'posts'
+    paginate_by = 10
+    
+    def get_queryset(self):
+        tag_slug = self.kwargs.get('tag_slug')
+        tag = get_object_or_404(Tag, slug=tag_slug)
+        return Post.objects.filter(tags__in=[tag]).distinct()
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        tag_slug = self.kwargs.get('tag_slug')
+        context['tag'] = get_object_or_404(Tag, slug=tag_slug)
+        return context

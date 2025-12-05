@@ -1,3 +1,4 @@
+from django import forms
 from taggit.forms import TagWidget
 from taggit.models import Tag
 
@@ -35,3 +36,31 @@ class PostForm(forms.ModelForm):
                     if tag_name:
                         post.tags.add(tag_name)
         return post
+    
+    class CommentForm(forms.ModelForm):
+    """
+    Form for creating and updating comments using Django's ModelForm.
+    Includes validation rules for comment content.
+    """
+    class Meta:
+        model = Comment  # This specifies the model
+        fields = ['content']
+        widgets = {
+            'content': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 3,
+                'placeholder': 'Write your comment here...'
+            }),
+        }
+    
+    def clean_content(self):
+        """Validation rule: Ensure comment is not empty and has minimum length."""
+        content = self.cleaned_data.get('content')
+        
+        if not content or len(content.strip()) == 0:
+            raise forms.ValidationError("Comment cannot be empty.")
+        
+        if len(content) > 1000:
+            raise forms.ValidationError("Comment is too long. Maximum 1000 characters allowed.")
+        
+        return content
